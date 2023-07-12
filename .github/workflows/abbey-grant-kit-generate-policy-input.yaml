@@ -6,7 +6,10 @@ jobs:
   output-plan:
     runs-on: ubuntu-latest
     env:
-      ABBEY_TOKEN: ${{ secrets.ABBEY_TOKEN }}
+      TF_VAR_abbey_token: ${{ secrets.ABBEY_TOKEN }}
+      TF_VAR_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      TF_VAR_username: ${{ secrets.SNOWFLAKE_USERNAME }}
+      TF_VAR_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -30,9 +33,6 @@ jobs:
         env:
           TF_HTTP_USERNAME: starter-kit
           TF_HTTP_PASSWORD: ${{ secrets.ABBEY_TOKEN }}
-          TF_VAR_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          TF_VAR_username: ${{ secrets.SNOWFLAKE_USERNAME }}
-          TF_VAR_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
 
       - name: Terraform Show
         id: show
