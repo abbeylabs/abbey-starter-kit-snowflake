@@ -10,7 +10,7 @@ terraform {
   required_providers {
     abbey = {
       source = "abbeylabs/abbey"
-      version = "0.2.2"
+      version = "0.2.4"
     }
 
     snowflake = {
@@ -88,59 +88,46 @@ resource "abbey_grant_kit" "role__pii_readonly" {
     steps = [
       {
         reviewers = {
-          # Replace with your Primary Identity.
-          # For more information on what a Primary Identity is, visit https://docs.abbey.io.
           one_of = ["replace-me@example.com"]
         }
       }
     ]
   }
 
-  policies = {
-    grant_if = [
-      {
-        query = <<-EOT
-          package main
+  policies = [
+    {
+      query = <<-EOT
+        package main
 
-          import data.abbey.functions
+        import data.abbey.functions
 
-          allow[msg] {
-            true; functions.expire_after("72h")
-            msg := "granting access for 3 days"
-          }
-        EOT
-      }
-    ]
-  }
+        allow[msg] {
+          true; functions.expire_after("72h")
+          msg := "granting access for 3 days"
+        }
+      EOT
+    }
+  ]
 
   output = {
     # Replace with your own path pointing to where you want your access changes to manifest.
     # Path is an RFC 3986 URI, such as `github://{organization}/{repo}/path/to/file.tf`.
     location = "github://organization/repo/access.tf"
     append = <<-EOT
-      resource "snowflake_role_grants" "pii_readonly__{{ .data.system.abbey.secondary_identities.snowflake.username }}" {
+      resource "snowflake_role_grants" "pii_readonly__{{ .data.system.abbey.identities.snowflake.username }}" {
         role_name = "${data.snowflake_role.pii_readonly_role.name}"
-        users     = ["{{ .data.system.abbey.secondary_identities.snowflake.username }}"]
+        users     = ["{{ .data.system.abbey.identities.snowflake.username }}"]
       }
     EOT
   }
 }
 
 resource "abbey_identity" "user_1" {
-  name = "replace-me"
-
-  linked = jsonencode({
-    abbey = [
-      {
-        type  = "AuthId"
-        value = "replace-me@example.com"
-      }
-    ]
-
-    snowflake = [
-      {
-        username = var.username
-      }
-    ]
-  })
+  abbey_account = "replace-me@example.com"
+  source = "snowflake"
+  metadata = jsonencode(
+    {
+      username = var.username
+    }
+  )
 }
